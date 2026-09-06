@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Gribli vs Grobli — Exercice interactif</title>
+<style>
+  :root{
+    --ink:#181818;
+    --paper:#FFFCF7;
+    --panel:#FFFFFF;
+    --panel-alt:#F3F0FF;
+    --pink:#FF2D78;
+    --yellow:#FFC93C;
+    --blue-label:#1E6FD9;
+    --orange-label:#E5760A;
+    --green:#2FA84F;
+    --red:#D6334C;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle, rgba(24,24,24,0.05) 1px, transparent 1.2px) 0 0/14px 14px,
+      var(--paper);
+    color:var(--ink);
+    font-family: Verdana, "Helvetica Neue", Arial, sans-serif;
+    padding:26px 16px 60px;
+  }
+  .page{max-width:760px; margin:0 auto;}
+
+  .title{
+    font-family: "Arial Black", Impact, Verdana, sans-serif;
+    font-size:38px;
+    line-height:1;
+    text-align:center;
+    letter-spacing:1px;
+    text-shadow:3px 3px 0 var(--yellow), 6px 6px 0 var(--ink);
+    margin:0 0 6px;
+  }
+  .title span{color:var(--pink);}
+  .subtitle{text-align:center; font-size:15.5px; font-weight:bold; margin:0 0 8px;}
+  .progress{text-align:center; font-size:13px; color:#555; margin-bottom:26px;}
+
+  .step{display:none;}
+  .step.active{display:block;}
+
+  .speech{
+    position:relative;
+    background:var(--panel);
+    border:3px solid var(--ink);
+    border-radius:20px;
+    padding:16px 22px;
+    margin:0 0 22px;
+    box-shadow:6px 6px 0 var(--ink);
+  }
+  .speech p{margin:6px 0; font-size:15.5px;}
+  .speech p strong{color:var(--pink);}
+
+  .row-2{display:flex; gap:20px; flex-wrap:wrap; justify-content:center; margin-bottom:22px;}
+  .monster-grid{display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:22px;}
+  @media(max-width:640px){ .monster-grid{grid-template-columns:repeat(3,1fr);} }
+  @media(max-width:420px){ .monster-grid{grid-template-columns:repeat(2,1fr);} }
+
+  .monster-card{
+    background:var(--panel);
+    border:3px solid var(--ink);
+    border-radius:16px;
+    padding:8px 6px 12px;
+    text-align:center;
+    box-shadow:4px 4px 0 var(--ink);
+  }
+  .monster-svg{width:100%; max-width:140px; display:block; margin:0 auto;}
+  .monster-label{
+    margin-top:4px; font-weight:bold; font-size:14px;
+    display:inline-block; padding:2px 12px; border-radius:999px;
+    border:2px solid var(--ink);
+  }
+  .label-gribli{background:var(--blue-label); color:#fff;}
+  .label-grobli{background:var(--orange-label); color:#fff;}
+
+  .mystery-wrap{text-align:center; margin-bottom:8px;}
+  .mystery-wrap .monster-card{display:inline-block; margin-bottom:18px;}
+
+  .vote-row{display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-bottom:20px;}
+  .vote-btn{
+    font-family:inherit; font-weight:bold; font-size:19px;
+    border:3px solid var(--ink); border-radius:16px;
+    padding:16px 34px; cursor:pointer;
+    box-shadow:4px 4px 0 var(--ink);
+    transition:transform .1s;
+    color:#fff;
+  }
+  .vote-btn:hover{transform:translateY(-2px);}
+  .vote-btn:active{transform:translateY(1px); box-shadow:2px 2px 0 var(--ink);}
+  .vote-btn.gribli{background:var(--blue-label);}
+  .vote-btn.grobli{background:var(--orange-label);}
+  .vote-btn:disabled{opacity:.45; cursor:default; transform:none;}
+
+  .feedback{
+    max-width:480px; margin:0 auto 20px;
+    border:2px solid var(--ink); border-radius:14px;
+    padding:14px 18px; font-size:15px; text-align:left;
+    display:none;
+  }
+  .feedback.ok{background:#E9F9EC; border-color:var(--green);}
+  .feedback.ko{background:#FDECEF; border-color:var(--red);}
+  .feedback strong.tag{display:block; font-size:15.5px; margin-bottom:4px;}
+  .feedback.ok strong.tag{color:var(--green);}
+  .feedback.ko strong.tag{color:var(--red);}
+
+  .next-btn{
+    display:block; margin:0 auto; font-family:inherit;
+    background:var(--ink); color:#fff; font-weight:bold; font-size:15px;
+    border:none; border-radius:999px; padding:10px 26px; cursor:pointer;
+  }
+  .next-btn:disabled{opacity:.35; cursor:default;}
+  .next-btn:hover:not(:disabled){filter:brightness(1.2);}
+
+  .debrief{
+    background:var(--panel); border:3px solid var(--ink); border-radius:20px;
+    padding:20px 24px; box-shadow:6px 6px 0 var(--ink); margin-top:10px;
+  }
+  .debrief h2{margin-top:0;}
+  .debrief ul{padding-left:20px;}
+  .debrief li{margin-bottom:10px; font-size:15.5px;}
+  .recap{
+    background:var(--panel-alt); border:2px solid var(--ink); border-radius:12px;
+    padding:12px 16px; font-size:14.5px; margin-bottom:18px;
+  }
+  .recap p{margin:4px 0;}
+
+  details{
+    margin-top:24px; background:#FFF2F2; border:2px dashed var(--pink);
+    border-radius:14px; padding:12px 16px;
+  }
+  details summary{cursor:pointer; font-weight:bold; color:var(--pink);}
+  details p{font-size:14px; margin:10px 0 4px;}
+
+  .center{text-align:center;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="title">Gribli <span>vs</span> Grobli</div>
+  <div class="subtitle">Un exercice de classification... pour comprendre comment une IA apprend</div>
+  <div class="progress" id="progress">Étape 1 / 5</div>
+
+  <!-- STEP 1 : INTRO -->
+  <div class="step active" id="step-1">
+    <div class="speech">
+      <p>Ces créatures appartiennent à deux familles : les <strong>Gribli</strong> et les <strong>Grobli</strong>. Une règle secrète permet toujours de dire à quelle famille appartient une créature.</p>
+      <p>Vous allez d'abord voir seulement <strong>2 exemples</strong>, puis essayer de classer une créature mystère. Ensuite vous verrez <strong>10 exemples de plus</strong>, et vous reclasserez la même créature mystère.</p>
+    </div>
+    <div class="row-2" id="phase1-pair"></div>
+    <div class="center"><button class="next-btn" onclick="goToStep(2)">J'ai bien observé, continuer →</button></div>
+  </div>
+
+  <!-- STEP 2 : VOTE 1 -->
+  <div class="step" id="step-2">
+    <div class="speech"><p>Avec seulement ces 2 exemples en tête, à vous de jouer :</p></div>
+    <div class="mystery-wrap" id="mystery-a-1"></div>
+    <div class="vote-row">
+      <button class="vote-btn gribli" onclick="vote(1,'Gribli')">Gribli</button>
+      <button class="vote-btn grobli" onclick="vote(1,'Grobli')">Grobli</button>
+    </div>
+    <div class="feedback" id="feedback-1"></div>
+    <div class="center"><button class="next-btn" id="next-1" onclick="goToStep(3)" disabled>Voir 10 nouveaux exemples →</button></div>
+  </div>
+
+  <!-- STEP 3 : PHASE 2 EXAMPLES -->
+  <div class="step" id="step-3">
+    <div class="speech">
+      <p>Voici 10 nouvelles créatures, déjà classées. Cherchez ce qui est <strong>toujours vrai</strong> pour tous les Gribli, et <strong>toujours vrai</strong> pour tous les Grobli — même quand tout le reste change.</p>
+    </div>
+    <div class="monster-grid" id="phase2-grid"></div>
+    <div class="center"><button class="next-btn" onclick="goToStep(4)">Je suis prêt(e) à reclasser →</button></div>
+  </div>
+
+  <!-- STEP 4 : VOTE 2 -->
+  <div class="step" id="step-4">
+    <div class="speech"><p>Voici de nouveau la créature mystère. À la lumière de ce que vous venez d'observer :</p></div>
+    <div class="mystery-wrap" id="mystery-a-2"></div>
+    <div class="vote-row">
+      <button class="vote-btn gribli" onclick="vote(2,'Gribli')">Gribli</button>
+      <button class="vote-btn grobli" onclick="vote(2,'Grobli')">Grobli</button>
+    </div>
+    <div class="feedback" id="feedback-2"></div>
+    <div class="center"><button class="next-btn" id="next-2" onclick="goToStep(5)" disabled>Voir le débrief →</button></div>
+  </div>
+
+  <!-- STEP 5 : DEBRIEF -->
+  <div class="step" id="step-5">
+    <div class="recap" id="recap"></div>
+    <div class="debrief">
+      <h2>Débrief</h2>
+      <ul>
+        <li>Votre classement était-il plus fiable avec plus d'exemples ?</li>
+        <li>Pourquoi la quantité (et la diversité) des données d'entraînement est-elle un facteur clé de la fiabilité d'une IA ?</li>
+      </ul>
+    </div>
+    <details>
+      <summary>Note pédagogique (pour l'enseignant)</summary>
+      <p><strong>Critère caché :</strong> la forme de la queue. Queue enroulée en spirale = Gribli. Queue droite = Grobli.</p>
+      <p>En phase 1, les deux exemples diffèrent sur plusieurs points à la fois (couleur, oreilles, taches, queue), donc plusieurs règles semblent possibles. La créature mystère est volontairement piégeuse : sa couleur, ses oreilles et ses taches ressemblent au Grobli vu en phase 1, alors que sa queue (le vrai critère) la classe en Gribli.</p>
+      <p>En phase 2, les 10 exemples varient librement en couleur, oreilles et taches à l'intérieur de chaque famille — seule la queue reste constante. Cela permet d'isoler la vraie règle, comme un algorithme d'apprentissage a besoin d'assez de données variées pour ne pas se fier à une corrélation accidentelle plutôt qu'au vrai facteur déterminant.</p>
+    </details>
+  </div>
+
+</div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+function createMonsterSVG(m){
+  const scaleMap = {small:0.82, medium:1, large:1.18};
+  const s = scaleMap[m.size] || 1;
+  const svg = el('svg', {viewBox:'0 0 220 220', class:'monster-svg'});
+  const g = el('g', {transform:`translate(110,120) scale(${s}) translate(-110,-120)`});
+
+  if(m.tailType === 'curly'){
+    g.appendChild(el('path', {
+      d:'M148,150 C176,152 190,124 170,108 C154,96 134,108 140,124 C144,135 160,136 163,126',
+      fill:'none', stroke:m.color, 'stroke-width':11, 'stroke-linecap':'round'
+    }));
+  } else {
+    g.appendChild(el('polyline', {
+      points:'148,150 178,140 160,122 190,110 172,92',
+      fill:'none', stroke:m.color, 'stroke-width':11, 'stroke-linecap':'round', 'stroke-linejoin':'round'
+    }));
+  }
+
+  if(m.earType === 'round'){
+    g.appendChild(el('circle', {cx:62, cy:68, r:19, fill:m.color}));
+    g.appendChild(el('circle', {cx:138, cy:68, r:19, fill:m.color}));
+  } else {
+    g.appendChild(el('polygon', {points:'50,82 64,30 82,80', fill:m.color}));
+    g.appendChild(el('polygon', {points:'118,80 136,30 150,82', fill:m.color}));
+  }
+
+  g.appendChild(el('ellipse', {cx:100, cy:122, rx:64, ry:58, fill:m.color}));
+  g.appendChild(el('ellipse', {cx:100, cy:122, rx:64, ry:58, fill:'none', stroke:'#181818', 'stroke-width':4}));
+
+  const spotPos = [[74,142],[128,138],[100,160],[86,108],[116,112]];
+  for(let i=0; i<m.spotCount; i++){
+    const p = spotPos[i];
+    g.appendChild(el('circle', {cx:p[0], cy:p[1], r:7, fill:'#FFFFFF', opacity:'0.85', stroke:'#181818', 'stroke-width':'1.5'}));
+  }
+
+  g.appendChild(el('ellipse', {cx:68, cy:132, rx:10, ry:6, fill:'#FF2D78', opacity:'0.35'}));
+  g.appendChild(el('ellipse', {cx:132, cy:132, rx:10, ry:6, fill:'#FF2D78', opacity:'0.35'}));
+
+  g.appendChild(el('circle', {cx:78, cy:114, r:17, fill:'#FFFFFF', stroke:'#181818', 'stroke-width':'3'}));
+  g.appendChild(el('circle', {cx:122, cy:114, r:17, fill:'#FFFFFF', stroke:'#181818', 'stroke-width':'3'}));
+  g.appendChild(el('circle', {cx:81, cy:117, r:8, fill:'#181818'}));
+  g.appendChild(el('circle', {cx:125, cy:117, r:8, fill:'#181818'}));
+  g.appendChild(el('circle', {cx:84, cy:112, r:3, fill:'#FFFFFF'}));
+  g.appendChild(el('circle', {cx:128, cy:112, r:3, fill:'#FFFFFF'}));
+
+  g.appendChild(el('path', {d:'M88,148 Q100,158 112,148', fill:'none', stroke:'#181818', 'stroke-width':3.5, 'stroke-linecap':'round'}));
+
+  svg.appendChild(g);
+  return svg;
+}
+
+function createCard(m, opts){
+  opts = opts || {};
+  const card = document.createElement('div');
+  card.className = 'monster-card';
+  card.appendChild(createMonsterSVG(m));
+  if(opts.showLabel !== false && m.label){
+    const lbl = document.createElement('div');
+    lbl.className = 'monster-label ' + (m.label === 'Gribli' ? 'label-gribli' : 'label-grobli');
+    lbl.textContent = m.label;
+    card.appendChild(lbl);
+  }
+  return card;
+}
+
+const phase1Gribli = {color:'#4DA6FF', tailType:'curly',    earType:'round', spotCount:2, size:'medium', label:'Gribli'};
+const phase1Grobli = {color:'#FFA733', tailType:'straight', earType:'horn',  spotCount:0, size:'medium', label:'Grobli'};
+const mysteryA = {color:'#FFA733', tailType:'curly', earType:'horn', spotCount:0, size:'medium'};
+
+const phase2Gribli = [
+  {color:'#FF6FA5', earType:'round', spotCount:1, size:'small',  tailType:'curly', label:'Gribli'},
+  {color:'#7ED957', earType:'horn',  spotCount:3, size:'large',  tailType:'curly', label:'Gribli'},
+  {color:'#FFD23F', earType:'round', spotCount:0, size:'medium', tailType:'curly', label:'Gribli'},
+  {color:'#B98CE0', earType:'horn',  spotCount:2, size:'small',  tailType:'curly', label:'Gribli'},
+  {color:'#3FD6C9', earType:'round', spotCount:1, size:'large',  tailType:'curly', label:'Gribli'}
+];
+const phase2Grobli = [
+  {color:'#B0A6E8', earType:'horn',  spotCount:2, size:'medium', tailType:'straight', label:'Grobli'},
+  {color:'#4DA6FF', earType:'round', spotCount:0, size:'small',  tailType:'straight', label:'Grobli'},
+  {color:'#FFA733', earType:'horn',  spotCount:3, size:'large',  tailType:'straight', label:'Grobli'},
+  {color:'#FF6FA5', earType:'round', spotCount:1, size:'medium', tailType:'straight', label:'Grobli'},
+  {color:'#7ED957', earType:'horn',  spotCount:0, size:'small',  tailType:'straight', label:'Grobli'}
+];
+
+document.getElementById('phase1-pair').appendChild(createCard(phase1Gribli));
+document.getElementById('phase1-pair').appendChild(createCard(phase1Grobli));
+document.getElementById('mystery-a-1').appendChild(createCard(mysteryA, {showLabel:false}));
+document.getElementById('mystery-a-2').appendChild(createCard(mysteryA, {showLabel:false}));
+
+const grid2 = document.getElementById('phase2-grid');
+for(let i = 0; i < 5; i++){
+  grid2.appendChild(createCard(phase2Gribli[i]));
+  grid2.appendChild(createCard(phase2Grobli[i]));
+}
+
+const TRUE_ANSWER = 'Gribli';
+const answers = {1:null, 2:null};
+
+function goToStep(n){
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+  document.getElementById('progress').textContent = 'Étape ' + n + ' / 5';
+  if(n === 5){
+    document.getElementById('recap').innerHTML =
+      '<p>Ton 1er essai (avec seulement 2 exemples) : <strong>' + answers[1] + '</strong> ' +
+      (answers[1] === TRUE_ANSWER ? '✅' : '❌ (bonne réponse : Gribli)') + '</p>' +
+      '<p>Ton 2e essai (après les 10 exemples) : <strong>' + answers[2] + '</strong> ' +
+      (answers[2] === TRUE_ANSWER ? '✅' : '❌ (bonne réponse : Gribli)') + '</p>';
+  }
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function vote(round, choice){
+  answers[round] = choice;
+  const correct = (choice === TRUE_ANSWER);
+  const fb = document.getElementById('feedback-' + round);
+  fb.className = 'feedback ' + (correct ? 'ok' : 'ko');
+  fb.style.display = 'block';
+
+  const btns = document.querySelectorAll('#step-' + round + ' .vote-btn');
+  btns.forEach(b => b.disabled = true);
+
+  if(round === 1){
+    fb.innerHTML = correct
+      ? '<strong class="tag">Bonne réponse !</strong>C\'est bien un Gribli. Mais peux-tu déjà expliquer avec certitude sur quel critère tu t\'es basé(e) ? Avec seulement 2 exemples, plusieurs règles semblaient possibles...'
+      : '<strong class="tag">Pas tout à fait.</strong>C\'est en fait un Gribli ! Avec seulement 2 exemples, difficile de savoir quelle caractéristique compte vraiment (couleur ? oreilles ? taches ?).';
+    document.getElementById('next-1').disabled = false;
+  } else {
+    fb.innerHTML = correct
+      ? '<strong class="tag">Bonne réponse !</strong>C\'est un Gribli : sa queue est enroulée en spirale. Tous les Gribli ont une queue enroulée, tous les Grobli ont une queue droite — la couleur, les oreilles et les taches ne servaient à rien pour classer !'
+      : '<strong class="tag">Pas tout à fait.</strong>C\'est en réalité un Gribli : regarde sa queue, enroulée en spirale. Tous les Gribli ont une queue enroulée, tous les Grobli ont une queue droite — c\'était le seul critère fiable, malgré les couleurs et oreilles trompeuses !';
+    document.getElementById('next-2').disabled = false;
+  }
+}
+</script>
+</body>
+</html>
