@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Le biais caché dans les données</title>
+<style>
+  :root{
+    --ink:#181818;
+    --paper:#F7F6F2;
+    --panel:#FFFFFF;
+    --panel-alt:#F0EEF9;
+    --pink:#FF2D78;
+    --teal:#1F6F78;
+    --gold:#C9962E;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"Helvetica Neue", Arial, sans-serif;
+    padding:28px 16px 60px;
+  }
+  .page{max-width:820px; margin:0 auto;}
+
+  .title{
+    font-family:"Arial Black", Impact, sans-serif;
+    font-size:32px; text-align:center; margin:0 0 4px;
+  }
+  .title span{color:var(--pink);}
+  .subtitle{text-align:center; font-size:15px; color:#555; margin:0 0 28px;}
+
+  .card{
+    background:var(--panel); border:2px solid var(--ink); border-radius:18px;
+    padding:20px 24px; box-shadow:5px 5px 0 var(--ink); margin-bottom:26px;
+  }
+  .card p{font-size:15.5px; line-height:1.55; margin:8px 0;}
+  .card p strong{color:var(--teal);}
+  .card h2{margin-top:0; font-size:20px;}
+
+  .face-grid{
+    display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin:16px 0 4px;
+  }
+  @media(max-width:640px){ .face-grid{grid-template-columns:repeat(4,1fr);} }
+  @media(max-width:420px){ .face-grid{grid-template-columns:repeat(3,1fr);} }
+
+  .face-card{
+    background:var(--panel-alt); border:2px solid var(--ink); border-radius:12px;
+    padding:6px; text-align:center;
+  }
+  .face-svg{width:100%; max-width:90px; display:block; margin:0 auto;}
+
+  .caption{text-align:center; font-size:13px; color:#666; margin-top:10px;}
+
+  .mystery-section{text-align:center;}
+  .mystery-section .face-svg{max-width:160px;}
+  .mystery-frame{
+    display:inline-block; background:var(--panel-alt); border:3px dashed var(--ink);
+    border-radius:16px; padding:14px 18px; margin:10px 0 22px;
+  }
+
+  .form-zone{
+    background:var(--panel); border:2px solid var(--ink); border-radius:16px;
+    padding:18px; margin-bottom:26px;
+  }
+  .form-placeholder{
+    background:#FFF7E6; border:2px dashed var(--gold); border-radius:12px;
+    padding:16px 18px; font-size:14.5px; color:#6b5210;
+  }
+  .form-placeholder code{background:#fff; padding:1px 6px; border-radius:4px;}
+
+  .debrief ul{padding-left:20px;}
+  .debrief li{margin-bottom:10px; font-size:15.5px;}
+
+  details{
+    margin-top:8px; background:#FFF2F2; border:2px dashed var(--pink);
+    border-radius:14px; padding:12px 16px;
+  }
+  details summary{cursor:pointer; font-weight:bold; color:var(--pink);}
+  details p{font-size:14px; margin:10px 0 4px;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="title">Le biais caché dans les <span>données</span></div>
+  <div class="subtitle">Un jolt sur l'intelligence artificielle et l'apprentissage automatique</div>
+
+  <div class="card">
+    <h2>Le jeu d'entraînement</h2>
+    <p>Imaginez un système de reconnaissance faciale entraîné <strong>uniquement</strong> à partir des 12 photos suivantes.</p>
+    <div class="face-grid" id="training-grid"></div>
+    <p class="caption">12 exemples d'entraînement — regardez ce qu'ils ont tous en commun.</p>
+  </div>
+
+  <div class="card mystery-section">
+    <h2>Le cas mystère</h2>
+    <p>Voici maintenant un nouveau visage, très différent de ceux du jeu d'entraînement, que le système doit essayer de reconnaître :</p>
+    <div class="mystery-frame">
+      <div id="mystery-face"></div>
+    </div>
+    <p><strong>D'après vous, comment ce système va-t-il se comporter face à ce visage ?</strong></p>
+  </div>
+
+  <div class="form-zone">
+    <div id="form-embed-container">
+      <div class="form-placeholder">
+        <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdu6fww-CxJQhc9tXWf07Cduzj0t0LfIWZO5BR2XZhdbV0E7w/viewform?embedded=true" width="640" height="463" frameborder="0" marginheight="0" marginwidth="0">Chargement…</iframe>
+      </div>
+    </div>
+  </div>
+
+  <div class="card debrief">
+    <h2>Débrief</h2>
+    <ul>
+      <li>Pourquoi un système entraîné sur des données non représentatives reproduit-il, voire amplifie-t-il, ce déséquilibre ?</li>
+      <li>En quoi cela pose-t-il un problème éthique et sociétal concret (reconnaissance faciale, recrutement automatisé, diagnostic médical assisté) ?</li>
+    
+
+</div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+function drawFace(f){
+  const svg = el('svg', {viewBox:'0 0 160 160', class:'face-svg'});
+
+  // fond / contexte
+  svg.appendChild(el('rect', {x:0, y:0, width:160, height:160, rx:16, fill:f.bg}));
+
+  const g = el('g', {transform:'translate(80,88)'});
+
+  // cheveux (derrière la tête)
+  g.appendChild(el('ellipse', {cx:0, cy:-30, rx:38, ry:30, fill:f.hair}));
+
+  // tête
+  g.appendChild(el('circle', {cx:0, cy:0, r:36, fill:f.skin, stroke:'#181818', 'stroke-width':2.5}));
+
+  // oreilles
+  g.appendChild(el('circle', {cx:-36, cy:4, r:7, fill:f.skin, stroke:'#181818', 'stroke-width':2}));
+  g.appendChild(el('circle', {cx:36, cy:4, r:7, fill:f.skin, stroke:'#181818', 'stroke-width':2}));
+
+  // yeux
+  g.appendChild(el('circle', {cx:-13, cy:-2, r:3.2, fill:'#181818'}));
+  g.appendChild(el('circle', {cx:13, cy:-2, r:3.2, fill:'#181818'}));
+
+  // sourcils
+  g.appendChild(el('line', {x1:-19, y1:-12, x2:-8, y2:-10, stroke:'#181818', 'stroke-width':2.2, 'stroke-linecap':'round'}));
+  g.appendChild(el('line', {x1:8, y1:-10, x2:19, y2:-12, stroke:'#181818', 'stroke-width':2.2, 'stroke-linecap':'round'}));
+
+  // lunettes
+  if(f.glasses){
+    g.appendChild(el('circle', {cx:-13, cy:-2, r:10, fill:'none', stroke:'#181818', 'stroke-width':2.5}));
+    g.appendChild(el('circle', {cx:13, cy:-2, r:10, fill:'none', stroke:'#181818', 'stroke-width':2.5}));
+    g.appendChild(el('line', {x1:-3, y1:-2, x2:3, y2:-2, stroke:'#181818', 'stroke-width':2.5}));
+  }
+
+  // bouche
+  g.appendChild(el('path', {d:'M-10,16 Q0,22 10,16', fill:'none', stroke:'#181818', 'stroke-width':2.5, 'stroke-linecap':'round'}));
+
+  // moustache
+  if(f.mustache){
+    g.appendChild(el('path', {d:'M-13,10 Q0,16 13,10 Q0,14 -13,10', fill:'#3a2b1f'}));
+  }
+
+  // col / vêtement
+  g.appendChild(el('path', {d:'M-30,36 Q0,50 30,36 L34,60 L-34,60 Z', fill:f.shirt}));
+  if(f.tie){
+    g.appendChild(el('polygon', {points:'-6,38 6,38 3,58 0,64 -3,58', fill:f.tie}));
+  }
+
+  svg.appendChild(g);
+
+  // filtre de faible luminosité
+  if(f.dim){
+    svg.appendChild(el('rect', {x:0, y:0, width:160, height:160, rx:16, fill:'#0a0a2a', opacity:'0.38'}));
+  }
+
+  return svg;
+}
+
+function faceCard(f){
+  const card = document.createElement('div');
+  card.className = 'face-card';
+  card.appendChild(drawFace(f));
+  return card;
+}
+
+// 12 exemples d'entraînement : même profil (adulte, lunettes, moustache,
+// carnation identique, intérieur bureau) — seules variations mineures : cravate, léger fond.
+const shirts = ['#4A5A8A','#5A6A9A','#3F4E7A','#55648F','#48587F','#516090'];
+const ties   = ['#B23A48','#3A7CA5','#7A6A3A','#2E7D5B','#8A3A6A','#A0522D'];
+const bgs    = ['#EDE3D0','#E7DCC7','#F0E6D2','#E3D8C3','#EAE0CB','#E5DAC5'];
+
+const trainingSet = [];
+for(let i=0;i<12;i++){
+  trainingSet.push({
+    bg: bgs[i % bgs.length],
+    skin: '#D8A878',
+    hair: '#2E2419',
+    glasses: true,
+    mustache: true,
+    shirt: shirts[i % shirts.length],
+    tie: ties[i % ties.length],
+    dim: false
+  });
+}
+
+const mysteryFace = {
+  bg: '#8FCBE8',        // extérieur, ciel
+  skin: '#7A4A2E',      // carnation différente
+  hair: '#1A1310',
+  glasses: false,       // pas de lunettes
+  mustache: false,      // pas de moustache (visage d'enfant)
+  shirt: '#E0B94D',
+  tie: null,
+  dim: true             // faible luminosité
+};
+
+const grid = document.getElementById('training-grid');
+trainingSet.forEach(f => grid.appendChild(faceCard(f)));
+
+document.getElementById('mystery-face').appendChild(drawFace(mysteryFace));
+
+// ---- Emplacement pour le Google Form ----
+// Remplacez la chaîne ci-dessous par le lien "embed" de votre formulaire
+// (voir les instructions fournies séparément pour le créer).
+const FORM_EMBED_SRC = "COLLEZ_ICI_LE_LIEN_DU_FORMULAIRE";
+
+if(FORM_EMBED_SRC && FORM_EMBED_SRC !== "COLLEZ_ICI_LE_LIEN_DU_FORMULAIRE"){
+  const container = document.getElementById('form-embed-container');
+  container.innerHTML = '';
+  const iframe = document.createElement('iframe');
+  iframe.src = FORM_EMBED_SRC;
+  iframe.width = '100%';
+  iframe.height = '520';
+  iframe.style.border = 'none';
+  container.appendChild(iframe);
+}
+</script>
+</body>
+</html>
